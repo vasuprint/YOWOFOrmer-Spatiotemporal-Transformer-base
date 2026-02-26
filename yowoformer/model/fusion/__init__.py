@@ -1,0 +1,1 @@
+from .cfam import CFAMFusion

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Weights & checkpoints
+weights/
+*.pth
+*.pt
+*.ckpt
+
+# Data
+data/
+
+# Output
+output/
+runs/
+logs/
+
+# Misc
+*.log
+*.json
+!pyproject.toml

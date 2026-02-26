@@ -1,0 +1,178 @@
+# Configuration for YOLOv11n + VideoMAE-Token + Simple Fusion
+# Expected: ~88.0% mAP (from baseline 87.4%)
+
+# ==================== Dataset Settings ====================
+dataset: "ucf"
+data_root: "data/UCF101-24"
+num_classes: 24
+
+# ==================== Model Architecture ====================
+# 2D Backbone - YOLOv11n (pretrained)
+backbone2D: "yolov11_n" # Will automatically load yolo11n.pt
+
+# 3D Backbone - VideoMAE with Token method
+backbone3D: "videomae"
+
+# VideoMAE Advanced Configuration
+BACKBONE3D:
+  TYPE: "videomae"
+  VARIANT: "base" # Using base model (pretrained on Kinetics-400)
+  METHOD: "token" # Token method - most efficient (17.98M params)
+  FREEZE: true # Freeze initially for stable training
+  TARGET_CHANNELS: 1024
+  TARGET_SPATIAL_SIZE: 7
+  DROPOUT: 0.1
+  I3D:
+    PRETRAIN:
+      default: null # Not using I3D
+
+# Fusion Module
+fusion_module: "Simple" # Simple fusion as requested
+
+# Model mode
+mode: "decoupled"
+
+# Channel configurations
+interchannels: [256, 256, 256] # [decoupled, fusion, detection]
+
+# ==================== Training Settings ====================
+# Basic training
+epochs: 10 # Can increase to 15-20 for better results
+max_epoch: 10
+batch_size: 48 # Optimized for RTX 3090 with Token method
+learning_rate: 0.0001
+lr: 0.0001 # Same as learning_rate (some code uses 'lr')
+optimizer_type: "adamw"
+weight_decay: 0.0005
+
+# Learning rate schedule
+adjustlr_schedule: [3, 5, 7, 9] # Epochs to decay LR
+lr_decay: 0.5 # Decay factor
+use_warmup: true
+max_step_warmup: 500
+warmup_epoch: 1
+
+# Gradient settings
+gradient_clip: 1.0
+acc_grad: 1 # Gradient accumulation steps
+gradient_accumulation: 2
+
+# EMA (Exponential Moving Average)
+use_ema: true
+ema_decay: 0.9999
+
+# ==================== Pretrained Weights ====================
+# YOLOv11n pretrained weights (automatic download if not exists)
+pretrain_2d: true # Will load yolo11n.pt
+pretrained_path_2d: null # Auto-download from Ultralytics
+
+# VideoMAE pretrained weights (from HuggingFace)
+pretrain_3d: true # Will load from MCG-NJU/videomae-base-finetuned-kinetics
+pretrained_path_3d: null # Auto-download from HuggingFace
+
+# Full model pretrained (if you have a checkpoint)
+pretrain_path: null # Set to checkpoint path to resume training
+
+# Freezing strategy
+freeze_bb2D: false # Don't freeze YOLOv11n
+freeze_bb3D: true # Freeze VideoMAE initially
+freeze_videomae: true # Alternative name for freeze_bb3D
+unfreeze_epoch: 5 # Unfreeze VideoMAE at epoch 5
+
+# ==================== Input Settings ====================
+img_size: 224
+clip_length: 16
+sampling_rate: 1
+
+# ==================== Data Augmentation ====================
+augment: true
+mosaic: 0.5
+mixup: 0.0
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+fliplr: 0.5
+flipud: 0.0
+
+# ==================== Loss Settings ====================
+loss: "tal" # Loss type: 'tal', 'simota', 'normal'
+LOSS:
+  TAL:
+    top_k: 10
+    alpha: 1.0
+    beta: 6.0
+    radius: 2.5
+    iou_type: "ciou"
+    iou_weight: 2.0
+    scale_cls_loss: 0.5
+    scale_box_loss: 7.5
+    scale_dfl_loss: 1.5
+    soft_label: true
+
+# Loss weights (alternative format)
+loss_cls_weight: 1.0
+loss_box_weight: 7.5
+loss_dfl_weight: 1.5
+tal_topk: 10
+tal_alpha: 1.0
+tal_beta: 6.0
+
+# ==================== Validation/Testing ====================
+val_interval: 1
+conf_threshold: 0.25
+nms_threshold: 0.5
+max_det: 300
+
+# ==================== Hardware Settings ====================
+device: "cuda"
+num_workers: 8
+pin_memory: true
+prefetch_factor: 2
+persistent_workers: true
+mixed_precision: true # Use FP16
+use_fp16: true # Alternative name for mixed precision
+
+# ==================== Checkpointing ====================
+save_folder: "weights/yolo11n_mae_token_simple"
+save_dir: "weights/yolo11n_mae_token_simple" # Alternative name
+save_interval: 2 # Save every 2 epochs
+save_best: true
+keep_last: 3
+
+# Resume training
+resume: false
+resume_path: null # Set to checkpoint path to resume
+
+# ==================== Logging ====================
+log_interval: 40
+tensorboard: true
+wandb: false
+wandb_project: "YOWOFormer"
+wandb_entity: null
+
+# ==================== Evaluation Settings ====================
+eval_dataset: "ucf"
+eval_batch_size: 1
+eval_metrics: ["mAP@0.5", "mAP@0.5:0.95"]
+
+# ==================== Other Settings ====================
+active_checker: false
+debug: false
+profile: false
+check_gradients: false
+
+# ==================== Additional Settings for Compatibility ====================
+# Some scripts might look for these
+config_path: "config/yolo11n_mae_token_simple.yaml"
+max_batches_per_epoch: null # Use all batches
+
+# ==================== Expected Performance ====================
+# Baseline (Simple): 87.4% mAP
+# Expected (Token): ~88.0% mAP (+0.6%)
+# Training time: ~2-3 hours per epoch on RTX 3090
+# Memory usage: ~6-8 GB VRAM

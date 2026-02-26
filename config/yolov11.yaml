@@ -1,0 +1,137 @@
+# YOLOv11 + YOWOv3 Configuration
+# ตัวอย่าง config สำหรับใช้ YOLOv11 เป็น 2D backbone
+
+# ==================== Dataset Settings ====================
+dataset: 'ucf'  # Options: 'ucf', 'ava'
+data_root: 'data/UCF101-24'
+num_classes: 24
+
+# Video/Image settings
+img_size: 224
+clip_length: 16
+sampling_rate: 1
+
+# ==================== Model Architecture ====================
+# 2D Backbone - ใช้ YOLOv11 (NEW!)
+backbone2D: 'yolov11_n'  # Options: yolov11_n, yolov11_s, yolov11_m, yolov11_l, yolov11_x
+
+# Pretrained weights options (เลือกวิธีใดวิธีหนึ่ง):
+# Option 1: ใช้ default pretrained weights (auto-download)
+pretrain_2d: true  # ใช้ pretrained weights จาก COCO dataset
+
+# Option 2: ใส่ path ไปยัง pretrained weights โดยตรง
+# pretrain_2d: 'weights/yolo11n.pt'  # ระบุ path โดยตรง
+
+# Option 3: ใช้ field แยก (ถ้าต้องการความชัดเจน)
+# pretrained_path_2d: 'weights/yolo11n.pt'  # Path to custom YOLOv11 weights
+# pretrain_path_2d: 'yolo11n.pt'  # หรือใช้ไฟล์ที่มีอยู่แล้ว
+
+# 3D Backbone (Temporal features)
+backbone3D: 'i3d'  # Options: i3d, resnet_18, resnet_50, resnet_101, resnext_101
+pretrain_3d: true
+
+# Fusion Module
+fusion_module: 'CFAM'  # Options: Simple, SE, CFAM, CBAM, MultiHead, Channel, Spatial, LKA
+
+# Model mode
+mode: 'coupled'  # Options: 'coupled', 'decoupled'
+
+# Channel configurations (ปรับตาม YOLOv11 version)
+# YOLOv11n: [64, 128, 256]
+# YOLOv11s: [128, 256, 512]
+# YOLOv11m: [192, 384, 768]
+# YOLOv11l: [256, 512, 1024]
+# YOLOv11x: [320, 640, 1280]
+interchannels: [256, 512, 512]  # [decoupled, fusion, detection]
+
+# ==================== Training Settings ====================
+epochs: 50
+batch_size: 4  # ลดลงถ้า GPU memory ไม่พอ
+learning_rate: 0.0001
+weight_decay: 0.0005
+
+# Learning rate schedule
+warmup_epochs: 3
+lr_scheduler: 'cosine'
+
+# Optimization
+gradient_clip: 10.0
+accumulation_steps: 1
+
+# Freeze settings (สำหรับ fine-tuning)
+freeze_backbone2d: false  # Freeze YOLOv11 backbone
+freeze_backbone3d: false  # Freeze 3D backbone
+
+# ==================== Loss Settings ====================
+# TAL (Task Aligned Learning)
+tal_topk: 10
+tal_alpha: 1.0
+tal_beta: 6.0
+
+# Loss weights
+loss_cls_weight: 1.0
+loss_box_weight: 7.5
+loss_dfl_weight: 1.5
+
+# ==================== Data Augmentation ====================
+augment: true
+mosaic: 0.5
+mixup: 0.0
+hsv_h: 0.015
+hsv_s: 0.7
+hsv_v: 0.4
+degrees: 0.0
+translate: 0.1
+scale: 0.5
+shear: 0.0
+perspective: 0.0
+fliplr: 0.5
+flipud: 0.0
+
+# ==================== Validation/Testing ====================
+val_interval: 1
+conf_threshold: 0.25
+nms_threshold: 0.5
+max_det: 300
+
+# ==================== Checkpointing ====================
+save_dir: 'weights/yolov11_training'
+save_interval: 5
+save_best: true
+keep_last: 3
+
+# Pretrained model path (ถ้าต้องการ load checkpoint)
+pretrain_path: null  # Set to checkpoint path to resume
+
+# Resume training
+resume: false
+resume_path: null
+
+# ==================== Hardware Settings ====================
+device: 'cuda'
+num_workers: 4
+pin_memory: true
+mixed_precision: false  # ใช้ FP16 training
+
+# ==================== Logging ====================
+log_interval: 10
+tensorboard: true
+wandb: false
+wandb_project: 'YOWOv3-YOLOv11'
+
+# ==================== Notes ====================
+# YOLOv11 Performance Comparison:
+#
+# Model   | Params | GFLOPs | mAP  | Speed
+# --------|--------|--------|------|-------
+# YOLOv11n | 2.6M   | 6.5    | 39.5 | Fast++
+# YOLOv11s | 9.4M   | 21.5   | 47.0 | Fast+
+# YOLOv11m | 20.1M  | 68.0   | 51.5 | Fast
+# YOLOv11l | 25.3M  | 87.6   | 53.4 | Normal
+# YOLOv11x | 56.9M  | 194.9  | 54.7 | Slow
+#
+# Recommendations:
+# - For testing/debugging: Use yolov11_n (fastest)
+# - For real-time: Use yolov11_s or yolov11_m
+# - For best accuracy: Use yolov11_l or yolov11_x
+# - For limited GPU: Use yolov11_n with batch_size=2

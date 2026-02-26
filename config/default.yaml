@@ -1,0 +1,162 @@
+# Simple Training Configuration for YOWOv3
+# ตัวอย่าง Config สำหรับการ Train แบบง่าย
+
+# ==================== Dataset Settings ====================
+dataset: 'ucf'  # Options: 'ucf', 'ava', 'jhmdb', 'ucf_crime', 'rwf2000'
+data_root: 'data/UCF101-24'  # Path to dataset
+num_classes: 24  # UCF=24, AVA=80, JHMDB=21
+
+# Video/Image settings
+img_size: 224  # Image size (224 or 320)
+clip_length: 16  # Number of frames per clip
+sampling_rate: 1  # Frame sampling rate
+
+# ==================== Model Architecture ====================
+# 2D Backbone (Spatial features)
+backbone2D: 'yolov8_n'  # Options: yolov8_n, yolov8_s, yolov8_m, yolov8_l, yolov8_x
+
+# 3D Backbone (Temporal features)
+backbone3D: 'i3d'  # Options: i3d, resnet_18, resnet_50, resnet_101, resnext_101, mobilenet, shufflenet
+
+# Fusion Module (รวม 2D และ 3D features)
+fusion_module: 'CFAM'  # Options: Simple, SE, CFAM, CBAM, MultiHead, Channel, Spatial, LKA
+
+# Model mode
+mode: 'coupled'  # Options: 'coupled', 'decoupled'
+
+# Channel configurations
+interchannels: [256, 512, 512]  # [decoupled, fusion, detection]
+
+# ==================== Training Settings ====================
+# Basic training
+epochs: 10  # จำนวน epochs สำหรับ training
+batch_size: 4  # Batch size (ลดลงถ้า GPU memory ไม่พอ)
+learning_rate: 0.0001  # Initial learning rate
+weight_decay: 0.0005  # Weight decay for regularization
+
+# Learning rate schedule
+warmup_epochs: 2  # Warmup epochs
+lr_scheduler: 'cosine'  # Options: 'cosine', 'step', 'multistep'
+lr_decay_factor: 0.1  # LR decay factor for step scheduler
+lr_decay_epochs: [30, 60]  # Epochs to decay LR (for multistep)
+
+# Optimization
+gradient_clip: 10.0  # Gradient clipping value (0 = no clipping)
+accumulation_steps: 1  # Gradient accumulation steps
+
+# EMA (Exponential Moving Average)
+use_ema: true  # Use EMA for model weights
+ema_decay: 0.9999  # EMA decay rate
+
+# ==================== Loss Settings ====================
+# TAL (Task Aligned Learning) settings
+tal_topk: 10  # Top-k for task aligned assignment
+tal_alpha: 1.0  # Weight for classification loss
+tal_beta: 6.0  # Weight for localization loss
+
+# Loss weights
+loss_cls_weight: 1.0  # Classification loss weight
+loss_box_weight: 7.5  # Box regression loss weight
+loss_dfl_weight: 1.5  # DFL loss weight
+
+# ==================== Data Augmentation ====================
+# Basic augmentations
+augment: true  # Enable data augmentation
+mosaic: 0.5  # Mosaic augmentation probability
+mixup: 0.0  # Mixup augmentation probability
+copy_paste: 0.0  # Copy-paste augmentation probability
+
+# Color augmentations
+hsv_h: 0.015  # HSV hue augmentation
+hsv_s: 0.7  # HSV saturation augmentation
+hsv_v: 0.4  # HSV value augmentation
+
+# Geometric augmentations
+degrees: 0.0  # Rotation degree range
+translate: 0.1  # Translation range
+scale: 0.5  # Scale range
+shear: 0.0  # Shear range
+perspective: 0.0  # Perspective range
+
+# Flip augmentations
+fliplr: 0.5  # Horizontal flip probability
+flipud: 0.0  # Vertical flip probability
+
+# ==================== Validation/Testing ====================
+val_interval: 1  # Validate every N epochs
+conf_threshold: 0.25  # Confidence threshold for detection
+nms_threshold: 0.5  # NMS IoU threshold
+max_det: 300  # Maximum detections per image
+
+# ==================== Checkpointing ====================
+save_dir: 'weights/simple_training'  # Directory to save weights
+save_interval: 5  # Save checkpoint every N epochs
+save_best: true  # Save best model based on validation
+keep_last: 3  # Keep last N checkpoints
+
+# Pretrained weights (set to null for training from scratch)
+pretrain_path: null  # Path to pretrained model
+pretrain_2d: 'weights/backbone2D/yolov8_n.pth'  # Pretrained 2D backbone
+pretrain_3d: 'weights/backbone3D/i3d_kinetics.pth'  # Pretrained 3D backbone
+
+# Resume training
+resume: false  # Resume from checkpoint
+resume_path: null  # Path to checkpoint
+
+# ==================== Hardware Settings ====================
+device: 'cuda'  # Device: 'cuda' or 'cpu'
+num_workers: 4  # Number of dataloader workers
+pin_memory: true  # Pin memory for faster GPU transfer
+mixed_precision: false  # Use mixed precision training (FP16)
+
+# ==================== Logging ====================
+log_interval: 10  # Log every N batches
+tensorboard: true  # Use tensorboard logging
+wandb: false  # Use Weights & Biases logging
+wandb_project: 'YOWOv3'  # W&B project name
+wandb_entity: null  # W&B entity name
+
+# ==================== Evaluation Settings ====================
+eval_dataset: 'ucf'  # Dataset for evaluation
+eval_batch_size: 1  # Batch size for evaluation
+eval_metrics: ['mAP@0.5', 'mAP@0.5:0.95']  # Metrics to compute
+
+# ==================== Advanced Settings ====================
+# Freeze backbones (for fine-tuning)
+freeze_backbone2d: false  # Freeze 2D backbone
+freeze_backbone3d: false  # Freeze 3D backbone
+freeze_epochs: 0  # Freeze for first N epochs
+
+# Multi-scale training
+multiscale: false  # Enable multi-scale training
+scale_range: [0.8, 1.2]  # Scale range for multi-scale
+
+# Label smoothing
+label_smoothing: 0.0  # Label smoothing factor
+
+# Soft labels
+use_soft_labels: false  # Use soft labels
+soft_label_alpha: 0.5  # Soft label weight
+
+# ==================== Debug Settings ====================
+debug: false  # Debug mode (use small subset)
+debug_samples: 100  # Number of samples in debug mode
+profile: false  # Profile model speed
+check_gradients: false  # Check gradient flow
+
+# ==================== Notes ====================
+# 1. สำหรับ GPU memory น้อย:
+#    - ลด batch_size เป็น 2 หรือ 1
+#    - ใช้ backbone2D: 'yolov8_n' (nano)
+#    - ใช้ gradient_accumulation > 1
+#
+# 2. สำหรับการ train เร็ว:
+#    - ใช้ mixed_precision: true
+#    - เพิ่ม num_workers
+#    - ใช้ pin_memory: true
+#
+# 3. สำหรับ accuracy สูง:
+#    - ใช้ backbone2D: 'yolov8_l' หรือ 'yolov8_x'
+#    - ใช้ backbone3D: 'resnext_101'
+#    - เพิ่ม epochs
+#    - ใช้ augmentation ทั้งหมด

@@ -1,0 +1,43 @@
+[project]
+name = "yowoformer"
+version = "1.0.0"
+description = "YOWOFormer: A One-Stage Dual-Stream Transformer for Spatio-Temporal Action Detection"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Vasu Thakaew"},
+]
+keywords = ["action-detection", "spatio-temporal", "deep-learning", "computer-vision", "video-understanding"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "einops>=0.8.1",
+    "fvcore>=0.1.5.post20221221",
+    "numpy>=2.0.0",
+    "opencv-python>=4.10.0",
+    "pillow>=11.0.0",
+    "pyyaml>=6.0.2",
+    "scipy>=1.13.0",
+    "thop>=0.1.1.post2209072238",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "tqdm>=4.66.0",
+    "transformers>=4.40.0",
+    "ultralytics>=8.2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/vasuthakaew/YOWOFormer"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[tool.setuptools.packages.find]
+include = ["yowoformer*"]
