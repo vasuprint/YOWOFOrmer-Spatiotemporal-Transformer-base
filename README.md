@@ -271,26 +271,42 @@ Key training settings:
 ```yaml
 # Optimizer
 optimizer_type: adamw
-learning_rate: 0.0001
+learning_rate: 0.00015
 weight_decay: 0.0005
 
+# Gradient
+gradient_clip: 1.0
+gradient_accumulation: 2
+
 # Scheduler
+scheduler_type: cosine
 use_warmup: true
 max_step_warmup: 500
 
 # VideoMAE freezing strategy
-freeze_bb3D: true        # Freeze VideoMAE initially
-unfreeze_epoch: 5         # Unfreeze at epoch 5 with 0.1x LR
+freeze_bb3D: true           # Freeze VideoMAE initially
+unfreeze_epoch: 5            # Unfreeze at epoch 5
+videomae_lr_ratio: 0.1       # 0.1x LR for VideoMAE after unfreeze
 
-# Loss (Task-Aligned Learning)
-loss: tal
-scale_cls_loss: 0.5
-scale_box_loss: 7.5
-scale_dfl_loss: 1.5
+# Mixed precision
+use_fp16: true
 
 # EMA
 use_ema: true
-ema_decay: 0.9999
+ema_decay: 0.999
+
+# Loss (Task-Aligned Learning)
+LOSS:
+  TAL:
+    top_k: 10
+    alpha: 1.0
+    beta: 6.0
+    radius: 2.5
+    iou_type: ciou
+    scale_cls_loss: 0.5
+    scale_box_loss: 7.5
+    scale_dfl_loss: 1.5
+    soft_label: true
 ```
 
 ---
